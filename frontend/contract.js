@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------
 // Paste the address printed by `npm run deploy:local` here after deploy.
 // ---------------------------------------------------------------------
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const CONTRACT_ADDRESS = "0xdF1d9270175c1459250C59c956265c355FBd38b2";
 
 // Hardhat's built-in local network. Change if you deploy elsewhere.
-const EXPECTED_CHAIN_ID = 31337;
-const EXPECTED_CHAIN_ID_HEX = "0x7a69"; // 31337 in hex, used for wallet_addEthereumChain
+const EXPECTED_CHAIN_ID = 11155111;
+const EXPECTED_CHAIN_ID_HEX = "0xaa36a7"; // 11155111 in hex (Sepolia), used for wallet_addEthereumChain
 
 const CONTRACT_ABI = [
   "function owner() view returns (address)",
