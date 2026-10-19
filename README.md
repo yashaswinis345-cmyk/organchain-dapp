@@ -1,5 +1,10 @@
 # OrganChain — Blockchain-Based Organ Transplantation Management
 
+> **Live Deployment:**
+> - **Frontend (Vercel):** [https://organchain-dapp-frontend.vercel.app](https://organchain-dapp-frontend.vercel.app)
+> - **Network:** Ethereum Sepolia Testnet (Chain ID: `11155111`)
+> - **Smart Contract Address:** [`0xdF1d9270175c1459250C59c956265c355FBd38b2`](https://sepolia.etherscan.io/address/0xdF1d9270175c1459250C59c956265c355FBd38b2)
+
 A Hardhat + Solidity + MetaMask prototype implementing the Phase-1 design
 from *"Blockchain-Based Organ Transplantation: A Decentralized Framework
 for Secure Donor–Recipient Management Using Ethereum Smart Contracts and
