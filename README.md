@@ -18,16 +18,17 @@ Match Ledger.
 
 Compared to the initial baseline prototype, this release introduces production-grade UX, full cryptographic auditing, and clinical safeguards:
 
-1. **🟢 Live Blockchain Heartbeat & Block Counter**: Live indicator in the top navigation bar (`● Sepolia Live · Block #... · Gas: Normal`) querying real-time Sepolia block heights every 12 seconds.
-2. **💡 Interactive "How It Works" Protocol Tour**: Built-in 5-stage walkthrough modal accessible from the topbar explaining IPFS hashing, hospital governance, EVM matching, and CIT safeguards.
-3. **📄 Official Transplant Allocation Certificate**: Printable hospital-grade allocation certificates in the Match Ledger with dynamic certificate IDs (`CERT-OC-SEP-000X`), Etherscan links, official gold wax seal, and scannable QR verification code.
-4. **🔍 Real-Time Search & Multi-Organ Filter**: Multi-category filter pills (`Kidney`, `Liver`, `Heart`, `Lung`, `Pancreas`, `Cornea`) plus an instant omni-search bar on the Match Ledger.
-5. **📋 One-Click Copy to Clipboard**: Embedded copy buttons (`📋` / `✓`) beside every Ethereum address and transaction hash with instant feedback tooltips.
-6. **🪪 Digital Organ Donor Card**: Printable digital wallet pass in the Donor portal with embedded Etherscan QR verification and print/PDF export.
-7. **📊 Visual Analytics Dashboard**: Live supply/demand breakdown per organ and clinical urgency distribution bars (Level 1–5) aggregated on-chain.
-8. **🧭 Cold Ischemia Time (CIT) Viability Window**: Real-time biological preservation countdown limits (4h heart, 6h lung, 12h liver, 24h kidney) before allocation execution.
-9. **🏥 Complete Hospital Verification Governance**: Open hospital applications reviewed and approved/rejected on-chain by the platform admin.
-10. **📦 33-Case On-Chain Benchmark Dataset**: Pre-seeded on Ethereum Sepolia spanning 10 verified donors and 23 waitlisted patients.
+1. **🚚 Cold-Chain Organ Transit Tracker & IoT Telemetry**: Real-time biological preservation HUD tracking core organ temperature ($2.0^\circ\text{C} – 4.0^\circ\text{C}$ safe zone), Cold Ischemia Time (CIT) viability countdown, live GPS transit waypoints, and multi-signature cryptographic custody handoffs. Backed by production ESP32 firmware ([`iot/esp32_firmware.ino`](iot/esp32_firmware.ino)) and full circuit specification ([`iot/IOT_SPECIFICATION.md`](iot/IOT_SPECIFICATION.md)).
+2. **🟢 Live Blockchain Heartbeat & Block Counter**: Live indicator in the top navigation bar (`● Sepolia Live · Block #... · Gas: Normal`) querying real-time Sepolia block heights every 12 seconds.
+3. **💡 Interactive "How It Works" Protocol Tour**: Built-in 5-stage walkthrough modal accessible from the topbar explaining IPFS hashing, hospital governance, EVM matching, and CIT safeguards.
+4. **📄 Official Transplant Allocation Certificate**: Printable hospital-grade allocation certificates in the Match Ledger with dynamic certificate IDs (`CERT-OC-SEP-000X`), Etherscan links, official gold wax seal, and scannable QR verification code.
+5. **🔍 Real-Time Search & Multi-Organ Filter**: Multi-category filter pills (`Kidney`, `Liver`, `Heart`, `Lung`, `Pancreas`, `Cornea`) plus an instant omni-search bar on the Match Ledger.
+6. **📋 One-Click Copy to Clipboard**: Embedded copy buttons (`📋` / `✓`) beside every Ethereum address and transaction hash with instant feedback tooltips.
+7. **🪪 Digital Organ Donor Card**: Printable digital wallet pass in the Donor portal with embedded Etherscan QR verification and print/PDF export.
+8. **📊 Visual Analytics Dashboard**: Live supply/demand breakdown per organ and clinical urgency distribution bars (Level 1–5) aggregated on-chain.
+9. **🧭 Cold Ischemia Time (CIT) Viability Window**: Real-time biological preservation countdown limits (4h heart, 6h lung, 12h liver, 24h kidney) before allocation execution.
+10. **🏥 Complete Hospital Verification Governance**: Open hospital applications reviewed and approved/rejected on-chain by the platform admin.
+11. **📦 33-Case On-Chain Benchmark Dataset**: Pre-seeded on Ethereum Sepolia spanning 10 verified donors and 23 waitlisted patients.
 
 ## 2. Project layout
 
