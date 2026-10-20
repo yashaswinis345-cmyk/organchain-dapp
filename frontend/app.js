@@ -9,6 +9,36 @@ function shortAddr(a) {
   return a.slice(0, 6) + "…" + a.slice(-4);
 }
 
+function EtherscanLink({ address, txHash, label, className = "addr", style = {} }) {
+  const isTx = Boolean(txHash);
+  const target = isTx ? txHash : address;
+  if (!target) return null;
+  const url = `https://sepolia.etherscan.io/${isTx ? "tx" : "address"}/${target}`;
+  const text = label || shortAddr(target);
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 3,
+        textDecoration: "none",
+        color: "var(--mint)",
+        cursor: "pointer",
+        ...style
+      }}
+      title={`View on Sepolia Etherscan: ${target}`}
+    >
+      <span>{text}</span>
+      <span style={{ fontSize: "10px", opacity: 0.75 }}>↗</span>
+    </a>
+  );
+}
+
 async function hashBytes(buf) {
   const digest = await crypto.subtle.digest("SHA-256", buf);
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -567,7 +597,7 @@ function DonorPage({ contract, account }) {
           <div className="card" style={{ marginBottom: 16 }}>
             <p className="eyebrow">Wallet information</p>
             <h2>Connected wallet</h2>
-            <div className="field"><div className="addr" style={{ fontFamily: "var(--font-mono)" }}>{account}</div></div>
+            <div className="field"><div className="addr" style={{ fontFamily: "var(--font-mono)" }}><EtherscanLink address={account} label={account} /></div></div>
             <div className="status-line ok">Wallet connected successfully!</div>
           </div>
           <div className="card">
@@ -716,7 +746,7 @@ function PatientPage({ contract, account }) {
           <div className="card" style={{ marginBottom: 16 }}>
             <p className="eyebrow">Wallet information</p>
             <h2>Connected wallet</h2>
-            <div className="addr" style={{ fontFamily: "var(--font-mono)" }}>{account}</div>
+            <div className="addr" style={{ fontFamily: "var(--font-mono)" }}><EtherscanLink address={account} label={account} /></div>
           </div>
           {docHash && (
             <div className="card">
@@ -906,7 +936,7 @@ function HospitalPage({ contract, account, isHospital, isOwner }) {
             {selected && (
               <table className="kv-table">
                 <tbody>
-                  <tr><td>Wallet address</td><td className="addr">{shortAddr(selected.addr)}</td></tr>
+                  <tr><td>Wallet address</td><td><EtherscanLink address={selected.addr} /></td></tr>
                   <tr><td>Location</td><td>{selected.location || "—"}</td></tr>
                   <tr><td>Status</td><td>
                     {selected.statusNum === 2 && <span className="badge verified">Verified</span>}
@@ -939,7 +969,7 @@ function HospitalPage({ contract, account, isHospital, isOwner }) {
                 {hospitals.map((h, i) => (
                   <tr key={h.addr} className={`selectable ${selected && selected.addr === h.addr ? "row-selected" : ""}`} onClick={() => setSelected(h)}>
                     <td>{i + 1}</td>
-                    <td>{h.name}<div className="addr">{shortAddr(h.addr)}</div></td>
+                    <td>{h.name}<div><EtherscanLink address={h.addr} /></div></td>
                     <td>{h.location || "—"}</td>
                     <td>
                       {h.statusNum === 2 && <span className="badge verified">Verified</span>}
@@ -953,7 +983,7 @@ function HospitalPage({ contract, account, isHospital, isOwner }) {
           )}
 
           <div className="status-line pending" style={{ marginTop: 14 }}>
-            MetaMask authentication ensures each hospital has a unique, verifiable identity on Ethereum. Connected identity: {shortAddr(account)} · Role: {isOwner ? "Admin" : "Hospital"}
+            MetaMask authentication ensures each hospital has a unique, verifiable identity on Ethereum. Connected identity: <EtherscanLink address={account} /> · Role: {isOwner ? "Admin" : "Hospital"}
           </div>
         </div>
       </div>
@@ -969,7 +999,7 @@ function HospitalPage({ contract, account, isHospital, isOwner }) {
               <tbody>
                 {donors.filter((d) => !d.isVerified).map((d) => (
                   <tr key={d.addr}>
-                    <td className="addr">{shortAddr(d.addr)}</td>
+                    <td><EtherscanLink address={d.addr} /></td>
                     <td>{d.name}</td>
                     <td>{d.bloodGroup}</td>
                     <td>{d.organ}</td>
@@ -1154,7 +1184,7 @@ function MatchingPage({ contract, account, isHospital }) {
               <h2>{selectedPatient.name} {selectedPatient === ranked.find((r) => r.eligible) && <span className="badge recommended">Recommended match</span>}</h2>
               <table className="kv-table">
                 <tbody>
-                  <tr><td>Patient address</td><td className="addr">{shortAddr(selectedPatient.addr)}</td></tr>
+                  <tr><td>Patient address</td><td><EtherscanLink address={selectedPatient.addr} /></td></tr>
                   <tr><td>Blood group</td><td>{selectedPatient.bloodGroup} {donorRecord ? "(Compatible)" : ""}</td></tr>
                   <tr><td>Urgency level</td><td>{String(selectedPatient.urgency)}</td></tr>
                   <tr><td>Waiting time</td><td>{selectedPatient.waitDays} days</td></tr>
@@ -1184,7 +1214,7 @@ function MatchingPage({ contract, account, isHospital }) {
               {ranked.map((p, i) => (
                 <tr key={p.addr} className={`selectable ${selectedPatient && selectedPatient.addr === p.addr ? "row-selected" : ""}`} onClick={() => p.eligible && setSelectedPatient(p)}>
                   <td>{i + 1}</td>
-                  <td>{p.name}<div className="addr">{shortAddr(p.addr)}</div></td>
+                  <td>{p.name}<div><EtherscanLink address={p.addr} /></div></td>
                   <td>{p.bloodGroup}</td>
                   <td>{String(p.urgency)}</td>
                   <td>{p.eligible ? p.waitDays : "—"}</td>
@@ -1425,7 +1455,11 @@ function App() {
           <span className="brand-sub">Ethereum · IPFS · Rule-based matching</span>
         </div>
         <div className="wallet-box">
-          {account && <span className={`pill ${isHospital ? "role-hospital" : "role-donor"}`}>{isOwner ? "Admin" : isHospital ? "Hospital" : "Participant"} · {shortAddr(account)}</span>}
+          {account && (
+            <span className={`pill ${isHospital ? "role-hospital" : "role-donor"}`}>
+              {isOwner ? "Admin" : isHospital ? "Hospital" : "Participant"} · <EtherscanLink address={account} style={{ color: "inherit", fontWeight: 600 }} />
+            </span>
+          )}
           {!chainOk && account && (
             <React.Fragment>
               <span className="pill warn">Wrong network ({chainId ?? "unknown"})</span>
@@ -1446,7 +1480,7 @@ function App() {
             Connect a MetaMask wallet (pointed at Ethereum Sepolia) to register as a donor or patient, or to access the hospital dashboard.
           </div>
           <div className="footnote">
-            Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
+            Contract: <EtherscanLink address={CONTRACT_ADDRESS} label={CONTRACT_ADDRESS} /> · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
           </div>
         </div>
       ) : (
@@ -1469,7 +1503,7 @@ function App() {
             {page === "ledger" && <LedgerPage contract={contract} account={account} isHospital={isHospital} />}
 
             <div className="footnote">
-              Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
+              Contract: <EtherscanLink address={CONTRACT_ADDRESS} label={CONTRACT_ADDRESS} /> · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
               <br />
               IPFS uploads are simulated client-side for local demos — see README for wiring a real pinning service.
             </div>
