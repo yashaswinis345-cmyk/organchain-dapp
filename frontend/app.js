@@ -900,7 +900,11 @@ function MatchingPage({ contract, account, isHospital }) {
             <label>Select donor</label>
             <select value={selectedDonor} onChange={(e) => setSelectedDonor(e.target.value)}>
               {donors.length === 0 && <option value="">No eligible donors</option>}
-              {donors.map((d) => <option key={d.addr} value={d.addr}>{shortAddr(d.addr)} ({d.bloodGroup})</option>)}
+              {donors.map((d) => (
+                <option key={d.addr} value={d.addr}>
+                  {d.name ? `${d.name} · ` : ""}{shortAddr(d.addr)} ({d.bloodGroup})
+                </option>
+              ))}
             </select>
           </div>
           <div className="field" style={{ flex: "0 0 auto" }}>
