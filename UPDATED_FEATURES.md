@@ -18,15 +18,19 @@ Below is an exhaustive log of all production features, clinical safeguards, and 
 
 ## 🌟 Complete Feature Index
 
-### 1. 🚚 Cold-Chain Organ Transit Tracker & IoT Telemetry System *(Flagship Feature)*
-* **Location**: Sidebar Navigation (`🚚 Transit Tracker`) & Match Ledger (`🛰️ Transit` button on any allocation row)
-* **Hardware & Firmware Specification**: [`iot/esp32_firmware.ino`](iot/esp32_firmware.ino) and [`iot/IOT_SPECIFICATION.md`](iot/IOT_SPECIFICATION.md)
+### 1. ⚖️ Algorithmic Fairness & Scoring Simulator (Fairness Lab) *(Flagship Feature)*
+* **Location**: Sidebar Navigation (`⚖️ Fairness Lab`) & Home Page Quicklinks
 * **Functionality**:
-  - **Live IoT Sensor Telemetry HUD**: Real-time display of core organ perfusion temperature (dynamically fluctuating in the $2.0^\circ\text{C} – 4.0^\circ\text{C}$ safe zone with visual status pulse).
-  - **Cold Ischemia Viability Countdown Clock**: Ticking countdown timer calculating remaining biological viability hours before tissue necrosis (Heart: 4–6h, Lung: 6–8h, Liver: 8–12h, Kidney: 24–36h).
-  - **Live GPS & Container Security**: Continuous streaming coordinates (`12.9716° N, 77.5946° E`), transit speed (`74 km/h`), altitude, and tamper-seal pressure sensor (`1013 hPa · Zero Breaches`).
-  - **Interactive 5-Waypoint Route Visualizer**: Dynamic progress stepper connecting *Organ Procured ➔ Cryo-Sealed ➔ In-Transit (Green Corridor) ➔ ICU Intake ➔ Implantation*.
-  - **Multi-Signature Chain of Custody**: Cryptographic handoff logs signed by procuring surgeon, certified logistics courier, and recipient ICU director, with interactive **`✍️ Sign & Advance Handoff`** action.
+  - **Interactive Policy Weight Tuner**: Real-time dual slider allowing evaluators to dynamically adjust the policy weight ratio between Clinical Urgency ($w_1$) and Waitlist Longevity ($w_2$).
+  - **Dynamic Candidate Re-Ranking**: Watch the live waitlisted candidates instantly re-sort and re-rank on the fly as policy weights shift, proving transparent mathematical execution.
+  - **Preset Policy Benchmarks**: One-click presets for *Standard Scientific Benchmark (70/30)*, *Critical Emergency Triage (90/10)*, and *Strict FIFO Longevity (30/70)*.
+  - **Explainable AI Mathematical Dissection**: Click any candidate to view an interactive breakdown of their exact math score:
+    - *Gate 1: ABO Compatibility Gate* ($\checkmark$ Compatible, 50 pts)
+    - *Gate 2: Urgency Priority* ($(\text{Urgency} \div 5) \times w_1 \times 0.3$)
+    - *Gate 3: Waiting Time Longevity* ($\min(\text{Days} \div 180, 1) \times w_2 \times 0.2$)
+    - *Composite Allocation Score* (out of 100 pts)
+  - **Algorithmic Bias & Neutrality Audit**: Statistical proof of zero human discretion, 0.00% demographic/wealth bias, and an optimal Gini equity coefficient (0.12).
+  - **Pure Smart Contract Execution**: Requires zero external hardware; 100% mathematically verifiable on Ethereum Sepolia.
 
 ### 2. 🟢 Live Blockchain Heartbeat & Block Height Monitor
 * **Location**: Top Navigation Bar (Always Visible)

@@ -18,7 +18,7 @@ Match Ledger.
 
 Compared to the initial baseline prototype, this release introduces production-grade UX, full cryptographic auditing, and clinical safeguards:
 
-1. **🚚 Cold-Chain Organ Transit Tracker & IoT Telemetry**: Real-time biological preservation HUD tracking core organ temperature ($2.0^\circ\text{C} – 4.0^\circ\text{C}$ safe zone), Cold Ischemia Time (CIT) viability countdown, live GPS transit waypoints, and multi-signature cryptographic custody handoffs. Backed by production ESP32 firmware ([`iot/esp32_firmware.ino`](iot/esp32_firmware.ino)) and full circuit specification ([`iot/IOT_SPECIFICATION.md`](iot/IOT_SPECIFICATION.md)).
+1. **⚖️ Algorithmic Fairness & Scoring Simulator (Fairness Lab)**: Interactive sensitivity analysis workbench allowing evaluators to tune policy weight ratios between Clinical Urgency ($w_1$) and Waitlist Longevity ($w_2$), watch real-time candidate re-ranking, and inspect transparent mathematical score dissections with zero hardware requirements.
 2. **🟢 Live Blockchain Heartbeat & Block Counter**: Live indicator in the top navigation bar (`● Sepolia Live · Block #... · Gas: Normal`) querying real-time Sepolia block heights every 12 seconds.
 3. **💡 Interactive "How It Works" Protocol Tour**: Built-in 5-stage walkthrough modal accessible from the topbar explaining IPFS hashing, hospital governance, EVM matching, and CIT safeguards.
 4. **📄 Official Transplant Allocation Certificate**: Printable hospital-grade allocation certificates in the Match Ledger with dynamic certificate IDs (`CERT-OC-SEP-000X`), Etherscan links, official gold wax seal, and scannable QR verification code.
