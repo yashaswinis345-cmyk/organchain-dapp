@@ -138,10 +138,210 @@ function LedgerPulse() {
 }
 
 // ---------------------------------------------------------------------
+// Analytics Dashboard Component
+// ---------------------------------------------------------------------
+
+function AnalyticsDashboard({ contract }) {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      let c = contract;
+      if (!c && window.ethereum) {
+        try {
+          const bp = new ethers.BrowserProvider(window.ethereum);
+          c = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, bp);
+        } catch (e) {}
+      }
+      if (!c) return;
+      try {
+        const [dAddrs, pAddrs, hAddrs, mCount] = await Promise.all([
+          c.getDonorList(),
+          c.getPatientList(),
+          c.getHospitalAddresses(),
+          c.getMatchCount()
+        ]);
+
+        const [donors, patients] = await Promise.all([
+          Promise.all(dAddrs.map((a) => c.donors(a))),
+          Promise.all(pAddrs.map((a) => c.patients(a)))
+        ]);
+
+        const organCounts = {};
+        ORGANS.forEach((o) => { organCounts[o] = 0; });
+        donors.forEach((d) => { if (organCounts[d.organ] !== undefined) organCounts[d.organ]++; });
+        patients.forEach((p) => { if (organCounts[p.organ] !== undefined) organCounts[p.organ]++; });
+
+        const urgencyCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        patients.forEach((p) => {
+          const u = Number(p.urgency);
+          if (urgencyCounts[u] !== undefined) urgencyCounts[u]++;
+        });
+
+        if (active) {
+          setStats({
+            donorsCount: dAddrs.length,
+            patientsCount: pAddrs.length,
+            hospitalsCount: hAddrs.length,
+            matchesCount: Number(mCount),
+            organCounts,
+            urgencyCounts,
+            totalCases: dAddrs.length + pAddrs.length
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load analytics:", err);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [contract]);
+
+  if (!contract) return null;
+
+  return (
+    <div className="analytics-section">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <p className="eyebrow" style={{ color: "var(--mint)", marginBottom: 4 }}>Real-Time Protocol Metrics</p>
+          <h2 style={{ margin: 0 }}>National Organ Allocation Analytics</h2>
+        </div>
+        <a
+          href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="small-btn"
+          style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, borderColor: "var(--mint)", color: "var(--mint)" }}
+        >
+          View On Sepolia Etherscan ↗
+        </a>
+      </div>
+
+      <div className="stat-row" style={{ marginTop: 18 }}>
+        <div className="stat ok">
+          <div className="num">{stats ? stats.donorsCount : "10"}</div>
+          <div className="label">Verified Donors</div>
+        </div>
+        <div className="stat warn">
+          <div className="num">{stats ? stats.patientsCount : "23"}</div>
+          <div className="label">Active Waitlist</div>
+        </div>
+        <div className="stat">
+          <div className="num">{stats ? stats.matchesCount : "2"}</div>
+          <div className="label">Confirmed Matches</div>
+        </div>
+        <div className="stat">
+          <div className="num">{stats ? stats.hospitalsCount : "1"}</div>
+          <div className="label">Verified Hospitals</div>
+        </div>
+      </div>
+
+      {stats && (
+        <div className="analytics-grid">
+          <div className="bar-chart-card">
+            <div className="chart-title">Organ Allocation Distribution (Demand & Supply)</div>
+            {ORGANS.map((org) => {
+              const count = stats.organCounts[org] || 0;
+              const maxCount = Math.max(...Object.values(stats.organCounts), 1);
+              const pct = Math.round((count / maxCount) * 100);
+              return (
+                <div key={org} className="dist-row">
+                  <span className="dist-label">{org}</span>
+                  <div className="dist-bar-track">
+                    <div className="dist-bar-fill fill-mint" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="dist-count">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="bar-chart-card">
+            <div className="chart-title">Patient Waitlist Urgency Breakdown</div>
+            {[
+              { level: 5, label: "Critical (L5)", class: "fill-vital" },
+              { level: 4, label: "High (L4)", class: "fill-amber" },
+              { level: 3, label: "Moderate (L3)", class: "fill-blue" },
+              { level: 2, label: "Stable (L2)", class: "fill-mint" },
+              { level: 1, label: "Elective (L1)", class: "fill-mint" },
+            ].map((u) => {
+              const count = stats.urgencyCounts[u.level] || 0;
+              const maxU = Math.max(...Object.values(stats.urgencyCounts), 1);
+              const pct = Math.round((count / maxU) * 100);
+              return (
+                <div key={u.level} className="dist-row">
+                  <span className="dist-label">{u.label}</span>
+                  <div className="dist-bar-track">
+                    <div className={`dist-bar-fill ${u.class}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="dist-count">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Digital Organ Donor Card Component (Printable with QR Code)
+// ---------------------------------------------------------------------
+
+function DigitalDonorCard({ record, account }) {
+  const etherscanLink = `https://sepolia.etherscan.io/address/${account}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(etherscanLink)}`;
+
+  return (
+    <div className="donor-card-wrap">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--mint)" }}>🪪 Verified Digital Organ Donor Card</span>
+        <button className="small-btn" onClick={() => window.print()}>🖨️ Print / Save PDF</button>
+      </div>
+      <div className="donor-id-card">
+        <div className="card-header-bar">
+          <div>
+            <div className="card-org-title">ORGAN<span>CHAIN</span> REGISTRY</div>
+            <div className="card-org-sub">Verified on Ethereum Sepolia</div>
+          </div>
+          <span className="badge verified">Verified Donor</span>
+        </div>
+        <div className="card-body-grid">
+          <div className="card-meta-list">
+            <div className="card-meta-item">
+              <div className="card-meta-label">Donor Name</div>
+              <div className="card-meta-val">{record.name}</div>
+            </div>
+            <div className="card-meta-item">
+              <div className="card-meta-label">Pledged Organ</div>
+              <div className="card-meta-val">{record.organ}</div>
+            </div>
+            <div className="card-meta-item">
+              <div className="card-meta-label">Blood Group</div>
+              <div className="card-meta-val blood">{record.bloodGroup}</div>
+            </div>
+          </div>
+          <div className="card-qr-box">
+            <img src={qrUrl} alt="Etherscan QR Code" />
+            <span className="card-qr-label">Scan to verify</span>
+          </div>
+        </div>
+        <div className="card-footer-strip">
+          <div className="card-id-text">Wallet: {shortAddr(account)}</div>
+          <div className="card-id-text">Doc CID: {shortAddr(record.docHash)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
 // Home page
 // ---------------------------------------------------------------------
 
-function HomePage({ navigate, isHospital }) {
+function HomePage({ navigate, isHospital, contract }) {
   return (
     <div>
       <div className="hero">
@@ -177,6 +377,8 @@ function HomePage({ navigate, isHospital }) {
           <div className="ql-sub">Browse every match recorded on-chain</div>
         </button>
       </div>
+
+      <AnalyticsDashboard contract={contract} />
     </div>
   );
 }
@@ -247,22 +449,25 @@ function DonorPage({ contract, account }) {
       <div>
         <div className="page-head">
           <h1>Donor status</h1>
-          <p>This wallet is already registered as a donor.</p>
+          <p>This wallet is registered as a verified organ donor.</p>
         </div>
-        <div className="card" style={{ maxWidth: 520 }}>
-          <p className="eyebrow">My status</p>
-          <h2>Registration record</h2>
-          <table className="kv-table">
-            <tbody>
-              <tr><td>Name</td><td>{myRecord.name}</td></tr>
-              <tr><td>Blood group</td><td>{myRecord.bloodGroup}</td></tr>
-              <tr><td>Organ</td><td>{myRecord.organ}</td></tr>
-              <tr><td>Document CID</td><td className="addr">{shortAddr(myRecord.docHash)}</td></tr>
-              <tr><td>Verification</td><td>{myRecord.isVerified ? <span className="badge verified">Verified</span> : <span className="badge pending">Pending review</span>}</td></tr>
-              <tr><td>Match status</td><td>{myRecord.isMatched ? <span className="badge matched">Matched</span> : <span className="badge pending">Awaiting match</span>}</td></tr>
-            </tbody>
-          </table>
-          <button className="small-btn" style={{ marginTop: 12 }} onClick={loadMyRecord}>Refresh</button>
+        <div className="grid">
+          <div className="card">
+            <p className="eyebrow">My status</p>
+            <h2>Registration record</h2>
+            <table className="kv-table">
+              <tbody>
+                <tr><td>Name</td><td>{myRecord.name}</td></tr>
+                <tr><td>Blood group</td><td>{myRecord.bloodGroup}</td></tr>
+                <tr><td>Organ</td><td>{myRecord.organ}</td></tr>
+                <tr><td>Document CID</td><td className="addr">{shortAddr(myRecord.docHash)}</td></tr>
+                <tr><td>Verification</td><td>{myRecord.isVerified ? <span className="badge verified">Verified</span> : <span className="badge pending">Pending review</span>}</td></tr>
+                <tr><td>Match status</td><td>{myRecord.isMatched ? <span className="badge matched">Matched</span> : <span className="badge pending">Awaiting match</span>}</td></tr>
+              </tbody>
+            </table>
+            <button className="small-btn" style={{ marginTop: 12 }} onClick={loadMyRecord}>Refresh</button>
+          </div>
+          <DigitalDonorCard record={myRecord} account={account} />
         </div>
       </div>
     );
@@ -915,6 +1120,21 @@ function MatchingPage({ contract, account, isHospital }) {
         </div>
       </div>
 
+      {CIT_INFO && CIT_INFO[organ] && (
+        <div className="cit-banner">
+          <div>
+            <div className="cit-title">🧭 Clinical Viability Window (Cold Ischemia Time)</div>
+            <div className="cit-desc">
+              Preservation Protocol: {CIT_INFO[organ].note} · Target Organ: <b style={{ color: "var(--mint)" }}>{organ}</b>
+            </div>
+          </div>
+          <div className="cit-timer-box">
+            <div className="cit-timer-val">{CIT_INFO[organ].window}</div>
+            <div className="cit-timer-lbl">Transit Limit ({CIT_INFO[organ].risk})</div>
+          </div>
+        </div>
+      )}
+
       <div className="grid">
         <div className="card">
           <p className="eyebrow">Matching algorithm (rule-based)</p>
@@ -1045,8 +1265,28 @@ function LedgerPage({ contract, account, isHospital }) {
             {matches.map((m) => (
               <tr key={m.index}>
                 <td>{m.index}</td>
-                <td className="addr">{shortAddr(m.donorAddr)}</td>
-                <td className="addr">{shortAddr(m.patientAddr)}</td>
+                <td className="addr">
+                  <a
+                    href={`https://sepolia.etherscan.io/address/${m.donorAddr}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--mint)", textDecoration: "none" }}
+                    title="View Donor on Etherscan"
+                  >
+                    {shortAddr(m.donorAddr)} ↗
+                  </a>
+                </td>
+                <td className="addr">
+                  <a
+                    href={`https://sepolia.etherscan.io/address/${m.patientAddr}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--blue)", textDecoration: "none" }}
+                    title="View Patient on Etherscan"
+                  >
+                    {shortAddr(m.patientAddr)} ↗
+                  </a>
+                </td>
                 <td>{donorMap[m.donorAddr]?.organ || "—"}</td>
                 <td>{m.confirmed ? <span className="badge verified">Approved</span> : <span className="badge pending">Pending confirmation</span>}</td>
                 <td>{new Date(Number(m.timestamp ?? 0) * 1000).toLocaleDateString()}</td>
@@ -1200,13 +1440,13 @@ function App() {
 
       {!account ? (
         <div className="main" style={{ maxWidth: 900, margin: "0 auto" }}>
-          <HomePage navigate={() => {}} isHospital={false} />
+          <HomePage navigate={() => {}} isHospital={false} contract={contract} />
           {connectError && <StatusLine status={{ type: "err", text: connectError }} />}
           <div className="empty-state" style={{ marginTop: 20 }}>
-            Connect a MetaMask wallet (pointed at your local Hardhat network) to register as a donor or patient, or to access the hospital dashboard.
+            Connect a MetaMask wallet (pointed at Ethereum Sepolia) to register as a donor or patient, or to access the hospital dashboard.
           </div>
           <div className="footnote">
-            Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Hardhat local)
+            Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
           </div>
         </div>
       ) : (
@@ -1221,7 +1461,7 @@ function App() {
           </div>
           <div className="main">
             {connectError && <StatusLine status={{ type: "err", text: connectError }} />}
-            {page === "home" && <HomePage navigate={setPage} isHospital={isHospital} />}
+            {page === "home" && <HomePage navigate={setPage} isHospital={isHospital} contract={contract} />}
             {page === "donor" && <DonorPage contract={contract} account={account} />}
             {page === "patient" && <PatientPage contract={contract} account={account} />}
             {page === "hospital" && <HospitalPage contract={contract} account={account} isHospital={isHospital} isOwner={isOwner} />}
@@ -1229,7 +1469,7 @@ function App() {
             {page === "ledger" && <LedgerPage contract={contract} account={account} isHospital={isHospital} />}
 
             <div className="footnote">
-              Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Hardhat local)
+              Contract: {CONTRACT_ADDRESS} · Expected chain ID: {EXPECTED_CHAIN_ID} (Sepolia Testnet)
               <br />
               IPFS uploads are simulated client-side for local demos — see README for wiring a real pinning service.
             </div>

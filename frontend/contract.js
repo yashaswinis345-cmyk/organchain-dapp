@@ -55,3 +55,14 @@ const ORGANS = ["Kidney", "Liver", "Heart", "Lung", "Pancreas", "Cornea"];
 
 // Mirrors the Solidity HospitalStatus enum.
 const HOSPITAL_STATUS = ["None", "Pending", "Verified", "Rejected"];
+
+// Cold Ischemia Time (CIT) clinical guidelines for organ transit viability
+const CIT_INFO = {
+  Heart: { window: "4–6 Hours", risk: "Extremely Critical", note: "Immediate airlift / direct logistics required" },
+  Lung: { window: "6–8 Hours", risk: "Critical", note: "Continuous ex-vivo lung perfusion monitoring" },
+  Liver: { window: "8–12 Hours", risk: "High", note: "Preservation via hypothermic machine perfusion" },
+  Pancreas: { window: "12–18 Hours", risk: "Moderate", note: "Islet cell cold preservation window" },
+  Kidney: { window: "24–36 Hours", risk: "High Tolerance", note: "Pulsatile perfusion enables wider regional transit" },
+  Cornea: { window: "Up to 14 Days", risk: "Tissue Tolerance", note: "Hypothermic corneal storage solution" },
+};
+
