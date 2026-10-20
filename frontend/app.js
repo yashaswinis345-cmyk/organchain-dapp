@@ -1630,6 +1630,7 @@ function LedgerPage({ contract, account, isHospital }) {
                 <td><span className="badge" style={{ background: "rgba(255,255,255,0.06)" }}>{donorMap[m.donorAddr]?.organ || "—"}</span></td>
                 <td>{m.confirmed ? <span className="badge verified">Approved</span> : <span className="badge pending">Pending confirmation</span>}</td>
                 <td>{new Date(Number(m.timestamp ?? 0) * 1000).toLocaleDateString()}</td>
+                <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                   <button
                     className="small-btn"
                     onClick={() => setActiveCertMatch(m)}
