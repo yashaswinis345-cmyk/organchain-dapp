@@ -1,51 +1,64 @@
-# OrganChain — Evaluation Dataset & Algorithm 1 Benchmark
+# OrganChain — Hospital Benchmark Dataset (19 Cases)
 
-This dataset demonstrates the rule-based matching mechanism of **Algorithm 1** implemented in the `OrganTransplant.sol` smart contract.
-
----
-
-## 1. Available Donor Profile
-
-| Field | Details | Description |
-|---|---|---|
-| **Donor Name** | Ravi Kumar | Verified Organ Donor |
-| **Pledged Organ** | **Kidney** | Organ available for allocation |
-| **Blood Group** | **A** | Determines immunological compatibility |
-| **Verification Status** | Verified | Authorized by Hospital Admin |
-| **IPFS Medical CID** | `bafybeiravireport456` | Tamper-proof cryptographic record |
+This clinical benchmark dataset models multi-organ allocation across **Kidney**, **Liver**, **Heart**, **Cornea**, and **Lung** under Algorithm 1.
 
 ---
 
-## 2. Recipient Waitlist Dataset (Algorithm 1 Evaluation)
+## 1. Registered & Verified Donors
 
-The formula specified in Algorithm 1 computes a multi-criteria priority score:
-$$\text{Score} = (w_1 \times \text{Urgency}) + (w_2 \times \text{Waiting Days})$$
-*Where $w_1 = 70$ (Urgency Weight) and $w_2 = 30$ (Waiting Time Weight).*
-
-| Patient ID | Patient Name | Organ Needed | Blood Group | Urgency (1–5) | Compatibility Check | Algorithm Score | Matching Outcome | Reason / Medical Justification |
-|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
-| **P-101** | **Rahul Sharma** | **Kidney** | **A** | **5 (Critical)** | **Compatible** ✅ | **350** | 🏆 **RECOMMENDED MATCH** | Highest clinical urgency with perfect ABO blood match. |
-| **P-102** | Priya Nair | Kidney | A | 2 (Stable) | Compatible ✅ | 140 | Ranked #2 (Eligible) | Compatible blood type, but stable urgency (elective stage). |
-| **P-103** | Kiran Rao | Kidney | B | 4 (High) | **Incompatible** ❌ | **0** | Disqualified | Blood group B cannot accept type A kidney (hyperacute rejection risk). |
-| **P-104** | Ananya Sen | Heart | A | 5 (Critical) | **Incompatible** ❌ | **0** | Disqualified | Organ type mismatch (needs Heart, donor pledged Kidney). |
+| # | Donor Name | Organ Pledged | Blood Group | Verification Status | Biological Match Characteristics |
+|:---:|:---|:---:|:---:|:---:|:---|
+| **D1** | **Ravi Kumar** | **Kidney** | **A** | Verified ✅ | Compatible with A and AB patients |
+| **D2** | **Deepak Verma** | **Liver** | **O** | Verified ✅ | **Universal Donor** (Compatible with O, A, B, AB) |
+| **D3** | **Sneha Patil** | **Heart** | **B** | Verified ✅ | Compatible with B and AB patients |
+| **D4** | **Amitabh Sen** | **Kidney** | **AB** | Verified ✅ | Compatible only with AB recipients |
+| **D5** | **Meera Joshi** | **Cornea** | **A** | Verified ✅ | Compatible with A and AB patients |
 
 ---
 
-## 3. Blood Group Compatibility Matrix (ABO Compatibility)
+## 2. Recipient Waitlist & Multi-Organ Allocation Cases
 
-In accordance with medical transplant guidelines encoded in `isCompatible()`:
+Algorithm 1 Priority Score:
+$$\text{Score} = (70 \times \text{Urgency}) + (30 \times \text{Waiting Days})$$
 
-| Donor Blood Group | Compatible Recipients | Incompatible Recipients | Notes |
-|:---:|:---:|:---:|:---|
-| **O** | **O, A, B, AB** | None | Universal Donor |
-| **A** | **A, AB** | B, O | Safe for A and AB patients |
-| **B** | **B, AB** | A, O | Safe for B and AB patients |
-| **AB** | **AB only** | A, B, O | Universal Recipient only |
+### 🫘 Category 1: Kidney Allocation (Donor: Ravi Kumar, Blood A)
+| Patient | Organ Needed | Blood | Urgency | Compatibility | Score | Expected Match Result | Medical Rationale |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
+| **Rahul Sharma** | Kidney | A | 5 (Critical) | **Compatible** ✅ | **350** | 🏆 **RECOMMENDED MATCH** | Highest clinical urgency with identical blood group. |
+| **Priya Nair** | Kidney | A | 2 (Stable) | **Compatible** ✅ | **140** | Ranked #2 (Eligible) | Compatible, but lower urgency score. |
+| **Kiran Rao** | Kidney | B | 4 (High) | **Incompatible** ❌ | **0** | Disqualified | Blood group B cannot accept A kidney. |
 
 ---
 
-## 4. Key Takeaways for Project Presentation / Viva
+### 🫀 Category 2: Liver Allocation (Donor: Deepak Verma, Universal Blood O)
+| Patient | Organ Needed | Blood | Urgency | Compatibility | Score | Expected Match Result | Medical Rationale |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
+| **Siddharth Roy** | Liver | O | 5 (Critical) | **Compatible** ✅ | **350** | 🏆 **RECOMMENDED MATCH** | Critical end-stage liver disease, identical O match. |
+| **Kavita Reddy** | Liver | A | 4 (High) | **Compatible** ✅ | **280** | Ranked #2 (Eligible) | O is universal donor; compatible with type A. |
+| **Manoj Tiwari** | Liver | B | 2 (Stable) | **Compatible** ✅ | **140** | Ranked #3 (Eligible) | O is universal donor; lower clinical urgency. |
 
-1. **Deterministic & Fair**: No human administrator can manually bump Patient 2 or 3 above Patient 1. The smart contract automatically selects the candidate with the highest calculated medical score.
-2. **Medical Safety Guarantee**: Biologically incompatible matches (wrong organ or conflicting ABO blood group) are automatically barred by the contract logic (`score = 0`).
-3. **Auditability**: Once confirmed, the transaction creates an immutable entry in the `MatchLedger`, visible on Ethereum Sepolia for independent public auditing.
+---
+
+### ❤️ Category 3: Heart Allocation (Donor: Sneha Patil, Blood B)
+| Patient | Organ Needed | Blood | Urgency | Compatibility | Score | Expected Match Result | Medical Rationale |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
+| **Arjun Das** | Heart | B | 5 (Critical) | **Compatible** ✅ | **350** | 🏆 **RECOMMENDED MATCH** | Critical cardiac failure, identical B match. |
+| **Lakshmi Iyer** | Heart | B | 3 (Moderate) | **Compatible** ✅ | **210** | Ranked #2 (Eligible) | Same blood group B, lower urgency score. |
+| **Rohan Gupta** | Heart | A | 4 (High) | **Incompatible** ❌ | **0** | Disqualified | Blood type A cannot accept B heart. |
+
+---
+
+### 👁️ Category 4: Cornea Allocation (Donor: Meera Joshi, Blood A)
+| Patient | Organ Needed | Blood | Urgency | Compatibility | Score | Expected Match Result | Medical Rationale |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
+| **Pooja Hegde** | Cornea | A | 4 (High) | **Compatible** ✅ | **280** | 🏆 **RECOMMENDED MATCH** | High urgency ocular trauma, identical A match. |
+| **Vikram Malhotra** | Cornea | B | 3 (Moderate) | **Incompatible** ❌ | **0** | Disqualified | Blood B incompatible with A donor. |
+
+---
+
+### 🫁 Category 5: Rare Blood & Organ Mismatches (Edge Case Testing)
+| Patient | Organ Needed | Blood | Urgency | Compatibility | Expected Result | Edge Case Validated |
+|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| **Neha Kapoor** | Kidney | AB | 5 (Critical) | **Compatible** with Amitabh Sen (AB) | Matches Donor D4 | AB universal recipient scenario. |
+| **Farhan Khan** | Kidney | O | 3 (Moderate) | **Incompatible** with Amitabh Sen (AB) | Disqualified (`Score: 0`) | AB donor cannot donate to O patient. |
+| **Sunita Menon** | Lung | O | 4 (High) | Awaiting Lung Donor | Queued on Waitlist | Correctly remains unmatched until lung arrives. |
