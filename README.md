@@ -12,27 +12,22 @@ IPFS,"* with a full multi-page dashboard: Home, Donor registration wizard,
 Patient waitlist, Hospital verification admin, Organ Matching, and a
 Match Ledger.
 
-## 1. What's new in this version
+## 1. What's new in this version (Comprehensive Updates)
 
-Compared to a minimal three-tab prototype, this build adds a full
-**hospital verification workflow** and an **explicit matching UI**:
+> For full architectural details and demo workflows, see the dedicated guide: **[UPDATED_FEATURES.md](UPDATED_FEATURES.md)** and dataset catalog: **[DEMO_DATASET.md](DEMO_DATASET.md)**.
 
-- Anyone can **apply to become a hospital** (name + location); the
-  contract owner (platform admin) reviews pending applicants and can
-  **approve or reject** them, or directly register+verify a new hospital
-  in one step.
-- A dedicated **Matching page**: a hospital picks an organ and one of
-  their verified, unmatched donors, runs matching, and sees every
-  waitlisted patient needing that organ **ranked by priority score**,
-  with incompatible patients clearly marked. The top-ranked eligible
-  patient is pre-selected as the "Recommended match"; the hospital can
-  also click any other eligible row before approving.
-- A dedicated **Match Ledger page** listing every match ever recorded,
-  with its confirmation status.
-- The Donor flow is a **3-step wizard** (Details → Upload → Confirm)
-  matching a real onboarding experience, with the document hash
-  generated client-side (simulated IPFS) before the final on-chain
-  transaction.
+Compared to the initial baseline prototype, this release introduces production-grade UX, full cryptographic auditing, and clinical safeguards:
+
+1. **🟢 Live Blockchain Heartbeat & Block Counter**: Live indicator in the top navigation bar (`● Sepolia Live · Block #... · Gas: Normal`) querying real-time Sepolia block heights every 12 seconds.
+2. **💡 Interactive "How It Works" Protocol Tour**: Built-in 5-stage walkthrough modal accessible from the topbar explaining IPFS hashing, hospital governance, EVM matching, and CIT safeguards.
+3. **📄 Official Transplant Allocation Certificate**: Printable hospital-grade allocation certificates in the Match Ledger with dynamic certificate IDs (`CERT-OC-SEP-000X`), Etherscan links, official gold wax seal, and scannable QR verification code.
+4. **🔍 Real-Time Search & Multi-Organ Filter**: Multi-category filter pills (`Kidney`, `Liver`, `Heart`, `Lung`, `Pancreas`, `Cornea`) plus an instant omni-search bar on the Match Ledger.
+5. **📋 One-Click Copy to Clipboard**: Embedded copy buttons (`📋` / `✓`) beside every Ethereum address and transaction hash with instant feedback tooltips.
+6. **🪪 Digital Organ Donor Card**: Printable digital wallet pass in the Donor portal with embedded Etherscan QR verification and print/PDF export.
+7. **📊 Visual Analytics Dashboard**: Live supply/demand breakdown per organ and clinical urgency distribution bars (Level 1–5) aggregated on-chain.
+8. **🧭 Cold Ischemia Time (CIT) Viability Window**: Real-time biological preservation countdown limits (4h heart, 6h lung, 12h liver, 24h kidney) before allocation execution.
+9. **🏥 Complete Hospital Verification Governance**: Open hospital applications reviewed and approved/rejected on-chain by the platform admin.
+10. **📦 33-Case On-Chain Benchmark Dataset**: Pre-seeded on Ethereum Sepolia spanning 10 verified donors and 23 waitlisted patients.
 
 ## 2. Project layout
 
