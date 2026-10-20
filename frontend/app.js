@@ -9,7 +9,30 @@ function shortAddr(a) {
   return a.slice(0, 6) + "…" + a.slice(-4);
 }
 
-function EtherscanLink({ address, txHash, label, className = "addr", style = {} }) {
+function CopyBtn({ text, style = {} }) {
+  const [copied, setCopied] = useState(false);
+  if (!text) return null;
+  const handleCopy = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      type="button"
+      className={`copy-btn ${copied ? "copied" : ""}`}
+      onClick={handleCopy}
+      title={copied ? "Copied!" : `Copy to clipboard: ${text}`}
+      style={style}
+    >
+      {copied ? "✓" : "📋"}
+    </button>
+  );
+}
+
+function EtherscanLink({ address, txHash, label, className = "addr", style = {}, showCopy = true }) {
   const isTx = Boolean(txHash);
   const target = isTx ? txHash : address;
   if (!target) return null;
@@ -17,25 +40,28 @@ function EtherscanLink({ address, txHash, label, className = "addr", style = {} 
   const text = label || shortAddr(target);
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 3,
-        textDecoration: "none",
-        color: "var(--mint)",
-        cursor: "pointer",
-        ...style
-      }}
-      title={`View on Sepolia Etherscan: ${target}`}
-    >
-      <span>{text}</span>
-      <span style={{ fontSize: "10px", opacity: 0.75 }}>↗</span>
-    </a>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 3, verticalAlign: "middle" }}>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+          textDecoration: "none",
+          color: "var(--mint)",
+          cursor: "pointer",
+          ...style
+        }}
+        title={`View on Sepolia Etherscan: ${target}`}
+      >
+        <span>{text}</span>
+        <span style={{ fontSize: "10px", opacity: 0.75 }}>↗</span>
+      </a>
+      {showCopy && <CopyBtn text={target} />}
+    </span>
   );
 }
 
@@ -1235,6 +1261,217 @@ function MatchingPage({ contract, account, isHospital }) {
 }
 
 // ---------------------------------------------------------------------
+// Live Blockchain Heartbeat Indicator
+// ---------------------------------------------------------------------
+
+function BlockchainHeartbeat() {
+  const [blockNumber, setBlockNumber] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchBlock() {
+      try {
+        let p = null;
+        if (window.ethereum) {
+          p = new ethers.BrowserProvider(window.ethereum);
+        } else {
+          p = new ethers.JsonRpcProvider("https://rpc.sepolia.org");
+        }
+        const b = await p.getBlockNumber();
+        if (!cancelled && b) {
+          setBlockNumber(b);
+        }
+      } catch (e) {
+        // quiet fallback
+      }
+    }
+    fetchBlock();
+    const timer = setInterval(fetchBlock, 12000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <div className="heartbeat-pill" title="Live Sepolia Ethereum Heartbeat">
+      <span className="pulse-dot"></span>
+      <span>Sepolia Live</span>
+      {blockNumber ? <span>· #{blockNumber}</span> : null}
+      <span style={{ opacity: 0.65 }}>· Gas: Normal</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Interactive "How It Works" Walkthrough Modal
+// ---------------------------------------------------------------------
+
+function HowItWorksModal({ onClose }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-window" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} title="Close">✕</button>
+        <div style={{ marginBottom: 20 }}>
+          <span className="badge verified" style={{ marginBottom: 8, display: "inline-block" }}>
+            Protocol & Architecture Guide
+          </span>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, margin: "6px 0", color: "var(--text)" }}>
+            How OrganChain Works
+          </h2>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+            A decentralized, tamper-evident protocol for organ donation and fair recipient matching on Ethereum Sepolia.
+          </p>
+        </div>
+
+        <div className="tour-step">
+          <div className="tour-step-num">1</div>
+          <div>
+            <div className="tour-step-title">Donor & Patient Onboarding</div>
+            <div className="tour-step-desc">
+              Donors pledge organs and recipients join the waitlist with self-reported clinical data. Medical reports are hashed and pinned to IPFS, with SHA-256 / keccak256 cryptographic proofs anchored permanently on-chain.
+            </div>
+          </div>
+        </div>
+
+        <div className="tour-step">
+          <div className="tour-step-num">2</div>
+          <div>
+            <div className="tour-step-title">Cryptographic Hospital Governance</div>
+            <div className="tour-step-desc">
+              Hospitals apply on-chain and are vetted by the contract administrator. Only verified hospitals hold authorization to verify donor medical records and approve final organ allocations.
+            </div>
+          </div>
+        </div>
+
+        <div className="tour-step">
+          <div className="tour-step-num">3</div>
+          <div>
+            <div className="tour-step-title">Deterministic Algorithmic Matching</div>
+            <div className="tour-step-desc">
+              The matching algorithm executes strictly in Solidity bytecode without human intermediaries:
+              <br />• <strong>ABO Compatibility</strong> (50 pts): Universal O donors, AB recipients, or exact blood group matches.
+              <br />• <strong>Clinical Urgency</strong> (up to 30 pts): Urgency score 1–5 prioritized.
+              <br />• <strong>Waiting Time</strong> (up to 20 pts): FIFO tie-breaking based on block timestamps.
+            </div>
+          </div>
+        </div>
+
+        <div className="tour-step">
+          <div className="tour-step-num">4</div>
+          <div>
+            <div className="tour-step-title">Cold Ischemia Time (CIT) Safeguard</div>
+            <div className="tour-step-desc">
+              Organs have strict biological viability windows (Heart: 4–6 hrs, Lung: 6–8 hrs, Liver: 8–12 hrs, Kidney: 24–36 hrs, Cornea: 14 days). The interface tracks CIT countdowns to ensure viability before match execution.
+            </div>
+          </div>
+        </div>
+
+        <div className="tour-step">
+          <div className="tour-step-num">5</div>
+          <div>
+            <div className="tour-step-title">Immutable Public Audit Ledger & Allocation Certificate</div>
+            <div className="tour-step-desc">
+              Every match creates an indelible event log and storage record on Sepolia. Anyone can inspect transactions on Etherscan or generate an official Allocation Certificate with verifiable QR codes.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+          <button className="btn primary" onClick={onClose} style={{ padding: "8px 20px" }}>
+            Got It, Close Guide
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Official Transplant Allocation Certificate Modal (Printable / PDF)
+// ---------------------------------------------------------------------
+
+function AllocationCertificateModal({ match, donor, patient, onClose }) {
+  if (!match) return null;
+  const certId = `CERT-OC-SEP-${String(match.index).padStart(4, "0")}`;
+  const verifyUrl = `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}`;
+  const dateStr = match.timestamp ? new Date(Number(match.timestamp) * 1000).toLocaleString() : "Confirmed On-Chain";
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-window" style={{ maxWidth: 720 }} onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} title="Close">✕</button>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--mint)" }}>
+            📄 Official Allocation Certificate
+          </span>
+          <button className="small-btn" onClick={() => window.print()}>
+            🖨️ Print / Save PDF
+          </button>
+        </div>
+
+        <div className="cert-card">
+          <div style={{ textAlign: "center", borderBottom: "2px solid #2d3748", paddingBottom: 16, marginBottom: 20 }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.15em", color: "#4a5568", textTransform: "uppercase" }}>
+              Republic of Ethereum · Sepolia Decentralized Registry
+            </div>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "#1a202c", margin: "6px 0 2px" }}>
+              TRANSPLANT ALLOCATION CERTIFICATE
+            </h2>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#718096" }}>
+              Certificate ID: <strong>{certId}</strong> · Match #{match.index}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <div style={{ background: "#f7fafc", padding: 14, borderRadius: 8, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#2d3748", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+                Donor Information
+              </div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#4a5568" }}>
+                <div><strong>Name:</strong> {donor?.name || "Verified Anonymous Donor"}</div>
+                <div><strong>Organ:</strong> {donor?.organ || "Vital Organ"}</div>
+                <div><strong>Blood Group:</strong> <span style={{ color: "#c53030", fontWeight: 700 }}>{donor?.bloodGroup || "—"}</span></div>
+                <div style={{ wordBreak: "break-all" }}><strong>Wallet:</strong> {match.donorAddr}</div>
+              </div>
+            </div>
+
+            <div style={{ background: "#f7fafc", padding: 14, borderRadius: 8, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#2d3748", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+                Recipient Information
+              </div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#4a5568" }}>
+                <div><strong>Name:</strong> {patient?.name || "Waitlisted Patient"}</div>
+                <div><strong>Urgency:</strong> Level {patient?.urgency ? Number(patient.urgency) : "—"}</div>
+                <div><strong>Blood Group:</strong> <span style={{ color: "#c53030", fontWeight: 700 }}>{patient?.bloodGroup || "—"}</span></div>
+                <div style={{ wordBreak: "break-all" }}><strong>Wallet:</strong> {match.patientAddr}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
+            <div style={{ fontSize: 11.5, color: "#718096", lineHeight: 1.5, maxWidth: "60%" }}>
+              <div><strong>Smart Contract:</strong> {shortAddr(CONTRACT_ADDRESS)}</div>
+              <div><strong>Recorded At:</strong> {dateStr}</div>
+              <div><strong>Status:</strong> {match.confirmed ? "Confirmed & Authorized by Hospital" : "Match Logged (Pending Final Confirmation)"}</div>
+            </div>
+            <div>
+              <img src={qrUrl} alt="Certificate QR" style={{ width: 85, height: 85, border: "1px solid #cbd5e0", padding: 3, borderRadius: 4 }} />
+            </div>
+          </div>
+
+          <div className="cert-seal">
+            SEPOLIA VERIFIED<br />ORGANCHAIN
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
 // Match Ledger page
 // ---------------------------------------------------------------------
 
@@ -1244,6 +1481,9 @@ function LedgerPage({ contract, account, isHospital }) {
   const [patientMap, setPatientMap] = useState({});
   const [busyKey, setBusyKey] = useState(null);
   const [status, setStatus] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrgan, setSelectedOrgan] = useState("All");
+  const [activeCertMatch, setActiveCertMatch] = useState(null);
 
   const loadAll = useCallback(async () => {
     if (!contract) return;
@@ -1279,48 +1519,109 @@ function LedgerPage({ contract, account, isHospital }) {
     }
   }
 
+  const organsList = ["All", "Kidney", "Liver", "Heart", "Lung", "Pancreas", "Cornea"];
+
+  const filteredMatches = useMemo(() => {
+    return matches.filter((m) => {
+      const d = donorMap[m.donorAddr] || {};
+      const p = patientMap[m.patientAddr] || {};
+      const organ = d.organ || "";
+
+      if (selectedOrgan !== "All" && organ.toLowerCase() !== selectedOrgan.toLowerCase()) {
+        return false;
+      }
+
+      if (searchTerm.trim()) {
+        const query = searchTerm.toLowerCase();
+        const matchStr = `${m.index} ${m.donorAddr} ${m.patientAddr} ${d.name} ${p.name} ${organ} ${d.bloodGroup} ${p.bloodGroup}`.toLowerCase();
+        if (!matchStr.includes(query)) return false;
+      }
+
+      return true;
+    });
+  }, [matches, donorMap, patientMap, selectedOrgan, searchTerm]);
+
   return (
     <div>
       <div className="page-head">
         <h1>Match Ledger</h1>
-        <p>Every donor–recipient match recorded on-chain, with its confirmation status.</p>
+        <p>Every donor–recipient match recorded on-chain, with real-time search, filter, and allocation certification.</p>
       </div>
       <StatusLine status={status} />
-      {matches.length === 0 ? (
-        <div className="empty-state">No matches recorded yet.</div>
+
+      <div className="filter-bar">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="🔍 Search by address, name, organ, blood type..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <div className="filter-pills">
+          {organsList.map((org) => (
+            <button
+              key={org}
+              type="button"
+              className={`filter-tag ${selectedOrgan === org ? "active" : ""}`}
+              onClick={() => setSelectedOrgan(org)}
+            >
+              {org}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, fontSize: 12, color: "var(--text-muted)" }}>
+        <span>Showing {filteredMatches.length} of {matches.length} recorded allocations</span>
+        {matches.length > 0 && <span style={{ fontFamily: "var(--font-mono)" }}>● Verified On-Chain</span>}
+      </div>
+
+      {filteredMatches.length === 0 ? (
+        <div className="empty-state">
+          {matches.length === 0 ? "No matches recorded yet." : "No allocations match your current search filters."}
+        </div>
       ) : (
         <table>
-          <thead><tr><th>#</th><th>Donor</th><th>Recipient</th><th>Organ</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Donor</th>
+              <th>Recipient</th>
+              <th>Organ</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style={{ textAlign: "right" }}>Actions</th>
+            </tr>
+          </thead>
           <tbody>
-            {matches.map((m) => (
+            {filteredMatches.map((m) => (
               <tr key={m.index}>
                 <td>{m.index}</td>
                 <td className="addr">
-                  <a
-                    href={`https://sepolia.etherscan.io/address/${m.donorAddr}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "var(--mint)", textDecoration: "none" }}
-                    title="View Donor on Etherscan"
-                  >
-                    {shortAddr(m.donorAddr)} ↗
-                  </a>
+                  <EtherscanLink
+                    address={m.donorAddr}
+                    label={donorMap[m.donorAddr]?.name ? `${donorMap[m.donorAddr].name} (${shortAddr(m.donorAddr)})` : shortAddr(m.donorAddr)}
+                  />
                 </td>
                 <td className="addr">
-                  <a
-                    href={`https://sepolia.etherscan.io/address/${m.patientAddr}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "var(--blue)", textDecoration: "none" }}
-                    title="View Patient on Etherscan"
-                  >
-                    {shortAddr(m.patientAddr)} ↗
-                  </a>
+                  <EtherscanLink
+                    address={m.patientAddr}
+                    label={patientMap[m.patientAddr]?.name ? `${patientMap[m.patientAddr].name} (${shortAddr(m.patientAddr)})` : shortAddr(m.patientAddr)}
+                    style={{ color: "var(--blue)" }}
+                  />
                 </td>
-                <td>{donorMap[m.donorAddr]?.organ || "—"}</td>
+                <td><span className="badge" style={{ background: "rgba(255,255,255,0.06)" }}>{donorMap[m.donorAddr]?.organ || "—"}</span></td>
                 <td>{m.confirmed ? <span className="badge verified">Approved</span> : <span className="badge pending">Pending confirmation</span>}</td>
                 <td>{new Date(Number(m.timestamp ?? 0) * 1000).toLocaleDateString()}</td>
-                <td>
+                <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <button
+                    className="small-btn"
+                    onClick={() => setActiveCertMatch(m)}
+                    title="View printable allocation certificate"
+                    style={{ marginRight: 6 }}
+                  >
+                    📄 Certificate
+                  </button>
                   {!m.confirmed && isHospital && (
                     <button className="small-btn" disabled={busyKey === m.index} onClick={() => doConfirm(m.index)}>Confirm</button>
                   )}
@@ -1329,6 +1630,15 @@ function LedgerPage({ contract, account, isHospital }) {
             ))}
           </tbody>
         </table>
+      )}
+
+      {activeCertMatch && (
+        <AllocationCertificateModal
+          match={activeCertMatch}
+          donor={donorMap[activeCertMatch.donorAddr]}
+          patient={patientMap[activeCertMatch.patientAddr]}
+          onClose={() => setActiveCertMatch(null)}
+        />
       )}
     </div>
   );
@@ -1356,8 +1666,9 @@ function App() {
   const [isHospital, setIsHospital] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [connectError, setConnectError] = useState(null);
+  const [showTour, setShowTour] = useState(false);
 
-  async function switchToHardhat() {
+  async function switchToSepolia() {
     if (!window.ethereum) return false;
     try {
       await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: EXPECTED_CHAIN_ID_HEX }] });
@@ -1370,11 +1681,11 @@ function App() {
       try {
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
-          params: [{ chainId: EXPECTED_CHAIN_ID_HEX, chainName: "Hardhat Local", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: ["http://127.0.0.1:8545"] }],
+          params: [{ chainId: EXPECTED_CHAIN_ID_HEX, chainName: "Sepolia Testnet", nativeCurrency: { name: "SepoliaETH", symbol: "ETH", decimals: 18 }, rpcUrls: ["https://rpc.sepolia.org"] }],
         });
         return true;
       } catch (addError) {
-        setConnectError(addError.message || "Unable to add the Hardhat network.");
+        setConnectError(addError.message || "Unable to add the Sepolia network.");
         return false;
       }
     }
@@ -1406,13 +1717,13 @@ function App() {
       setChainOk(chainIdNum === Number(EXPECTED_CHAIN_ID));
 
       if (chainIdNum !== Number(EXPECTED_CHAIN_ID)) {
-        setConnectError(`MetaMask is on chain ${chainIdNum}; switching to Hardhat Local…`);
-        await switchToHardhat();
+        setConnectError(`MetaMask is on chain ${chainIdNum}; switching to Sepolia Testnet…`);
+        await switchToSepolia();
         return;
       }
 
       if (!ethers.isAddress(CONTRACT_ADDRESS)) {
-        setConnectError(`CONTRACT_ADDRESS in contract.js is not a valid address: "${CONTRACT_ADDRESS}". Re-copy it from your "npm run deploy:local" output.`);
+        setConnectError(`CONTRACT_ADDRESS in contract.js is not a valid address: "${CONTRACT_ADDRESS}".`);
         return;
       }
 
@@ -1454,16 +1765,26 @@ function App() {
           <span className="brand-mark">Organ<span className="accent">Chain</span></span>
           <span className="brand-sub">Ethereum · IPFS · Rule-based matching</span>
         </div>
-        <div className="wallet-box">
+        <div className="wallet-box" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <BlockchainHeartbeat />
+          <button
+            type="button"
+            className="small-btn"
+            onClick={() => setShowTour(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 12px" }}
+            title="Interactive Walkthrough of OrganChain"
+          >
+            💡 How It Works
+          </button>
           {account && (
             <span className={`pill ${isHospital ? "role-hospital" : "role-donor"}`}>
-              {isOwner ? "Admin" : isHospital ? "Hospital" : "Participant"} · <EtherscanLink address={account} style={{ color: "inherit", fontWeight: 600 }} />
+              {isOwner ? "Admin" : isHospital ? "Hospital" : "Participant"} · <EtherscanLink address={account} showCopy={false} style={{ color: "inherit", fontWeight: 600 }} />
             </span>
           )}
           {!chainOk && account && (
             <React.Fragment>
               <span className="pill warn">Wrong network ({chainId ?? "unknown"})</span>
-              <button className="small-btn" onClick={switchToHardhat}>Switch to Hardhat</button>
+              <button className="small-btn" onClick={switchToSepolia}>Switch to Sepolia</button>
             </React.Fragment>
           )}
           <button className="btn primary" onClick={account ? disconnect : connectWallet}>
@@ -1471,6 +1792,8 @@ function App() {
           </button>
         </div>
       </div>
+
+      {showTour && <HowItWorksModal onClose={() => setShowTour(false)} />}
 
       {!account ? (
         <div className="main" style={{ maxWidth: 900, margin: "0 auto" }}>

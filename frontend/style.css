@@ -491,21 +491,225 @@ tbody tr.row-selected { background: rgba(79,209,165,0.07); }
   color: var(--text-muted);
 }
 
-/* ---------- Print view for Donor Card ---------- */
+/* ---------- Copy button & Toast notification ---------- */
+.copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-left: 5px;
+  vertical-align: middle;
+  transition: all 0.15s ease;
+}
+.copy-btn:hover { color: var(--mint); transform: scale(1.15); }
+.copy-btn.copied { color: var(--mint); }
+
+.toast-box {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--panel-raised);
+  border: 1px solid var(--mint);
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- Search and Filter Bar ---------- */
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+.search-input {
+  flex: 1;
+  min-width: 220px;
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  outline: none;
+}
+.search-input:focus { border-color: var(--mint); }
+.filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.filter-tag.active {
+  background: var(--mint);
+  color: #06120e;
+  border-color: var(--mint);
+  font-weight: 600;
+}
+.filter-tag:hover:not(.active) { border-color: var(--mint); color: var(--text); }
+
+/* ---------- Live Blockchain Heartbeat Indicator ---------- */
+.heartbeat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(79, 209, 165, 0.08);
+  border: 1px solid rgba(79, 209, 165, 0.25);
+  color: var(--mint);
+  letter-spacing: 0.02em;
+}
+.pulse-dot {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 7px var(--mint);
+  animation: liveBlink 1.8s infinite ease-in-out;
+}
+@keyframes liveBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+/* ---------- Modal Overlays (Tour & Certificate) ---------- */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(4, 11, 15, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-window {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  max-width: 650px;
+  width: 100%;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+.modal-close:hover { color: var(--text); }
+
+/* ---------- Walkthrough Tour Steps ---------- */
+.tour-step {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+.tour-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.tour-step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(79, 209, 165, 0.15);
+  border: 1px solid var(--mint);
+  color: var(--mint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.tour-step-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.tour-step-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ---------- Official Allocation Certificate ---------- */
+.cert-card {
+  background: #ffffff;
+  color: #1a202c;
+  border: 3px double #2d3748;
+  border-radius: 12px;
+  padding: 32px;
+  font-family: var(--font-body);
+  position: relative;
+}
+.cert-seal {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  border: 2px dashed #b7791f;
+  color: #b7791f;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 8px;
+  transform: rotate(-6deg);
+}
+
 @media print {
   body * { visibility: hidden; }
-  .donor-id-card, .donor-id-card * { visibility: visible; }
-  .donor-id-card {
+  .cert-card, .cert-card * { visibility: visible; }
+  .cert-card {
     position: absolute;
-    left: 20px;
-    top: 20px;
-    width: 420px;
-    box-shadow: none;
+    left: 0; top: 0; width: 100%;
     border: 2px solid #000;
-    color: #000;
-    background: #fff !important;
   }
-  .card-org-title, .card-meta-val { color: #000 !important; }
-  .card-meta-label, .card-org-sub, .card-id-text { color: #444 !important; }
 }
+
 
